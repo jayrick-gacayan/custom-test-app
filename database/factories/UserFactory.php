@@ -40,27 +40,27 @@ class UserFactory extends Factory
 
     public function userRole()
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'role' => Role::USER,
         ]);
     }
 
     public function adminRole()
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'role' => Role::ADMIN,
         ]);
     }
 
     public function agentRole()
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'role' => Role::AGENT,
         ]);
     }
     public function unverified(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
     }
