@@ -12,11 +12,16 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Password;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens, HasUuids, CanResetPassword;
+    use HasFactory,
+        Notifiable,
+        HasApiTokens,
+        HasUuids,
+        CanResetPassword;
 
     /**
      * The attributes that are mass assignable.
@@ -29,6 +34,7 @@ class User extends Authenticatable
         'role',
         'email',
         'password',
+        'profile_image'
     ];
 
     /**
@@ -55,8 +61,17 @@ class User extends Authenticatable
         ];
     }
 
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    public function scopeUser(Builder $query)
+    {
+        return $query->where('role', Role::USER);
+    }
     public function sendPasswordResetNotification($token)
     {
-        $this->notify(new ResetPasswordNotification($token, $this->getEmailForPasswordReset()));
+        $this->$this->notify(new ResetPasswordNotification($token, $this->getEmailForPasswordReset()));
     }
 }

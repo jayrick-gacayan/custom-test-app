@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Business>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Post>
  */
-class BusinessFactory extends Factory
+class PostFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -18,6 +18,8 @@ class BusinessFactory extends Factory
     {
         return [
             //
+            'title' => fake()->sentence(4),
+            'content' => fake()->sentences(5)
         ];
     }
 }

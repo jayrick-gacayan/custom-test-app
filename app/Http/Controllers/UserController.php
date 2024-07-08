@@ -12,36 +12,39 @@ use Illuminate\Support\Str;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return response()->json(User::user()->all(), 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // $validate = $request->validate([
-        //     'first_name' => 'required|max:255',
-        //     'last_name' => 'required|max:255',
-        // ]);
+        $validate = $request->validate([
+            'first_name' => 'required|max:255',
+            'last_name' => 'required|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:8'
+        ]);
 
-        $user = User::create($request->all());
+        $user = new User();
+
+        $user->fill(
+            Arr::except(
+                $request->only($user->getFillable()),
+                ['profile_image']
+            )
+        );
+
+        if ($request->hasFile('profile_image')) {
+            $file = $request->file('profile_image');
+            $path = Storage::url($file->storeAs('public/front_id', uniqid() . '.' . $file->getClientOriginalExtension()));
+            $user->profile_image = env('APP_URL') . $path;
+        }
+        $user->save();
 
         return response()->json([
             'message' => 'Successfully registered user.',
@@ -49,34 +52,30 @@ class UserController extends Controller
         ], 200);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(User $user)
     {
         //
+        return response()->json($user->with('posts')->get(), 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(Request $request, User $user)
     {
-        //
+        $user->fill(Arr::except(
+            $request->only($user->getFillable()),
+            ['profile_image']
+        ));
+
+        if ($request->hasFile('profile_image')) {
+            $file = $request->file('profile_image');
+            $path = Storage::url($file->storeAs('public/front_id', uniqid() . '.' . $file->getClientOriginalExtension()));
+            $user->profile_image = env('APP_URL') . $path;
+        }
+        $user->save();
+
+        return response()->json($user, 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(User $user)
     {
         //
     }
@@ -163,7 +162,7 @@ class UserController extends Controller
     {
 
         if (Auth::attempt($request->only('email', 'password'))) {
-            $user = User::where($request->email)->first();;
+            $user = User::where($request->email)->first();
 
             $token = $user->createToken('Access Token')->accessToken;
 
