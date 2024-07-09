@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
+use App\Models\Post;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Exception;
@@ -10,9 +12,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
+
 
 class UserController extends Controller
 {
@@ -32,12 +36,7 @@ class UserController extends Controller
 
         $user = new User();
 
-        $user->fill(
-            Arr::except(
-                $request->only($user->getFillable()),
-                ['profile_image']
-            )
-        );
+        $user->fill(Arr::except($request->only($user->getFillable()), ['profile_image']));
 
         if ($request->hasFile('profile_image')) {
             $file = $request->file('profile_image');
@@ -54,22 +53,33 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        //
-        return response()->json($user->with('posts')->get(), 200);
+
+
+        return response()->json(
+
+            $user->with([
+                'posts.tags',
+                'posts.comments', function ($query) {
+                    $query->whereNull('parent_id');
+                },
+
+                'posts.comments.replies'
+            ])->get(),
+
+            200
+        );
     }
 
     public function update(Request $request, User $user)
     {
-        $user->fill(Arr::except(
-            $request->only($user->getFillable()),
-            ['profile_image']
-        ));
+        $user->fill(Arr::except($request->only($user->getFillable()), ['profile_image']));
 
         if ($request->hasFile('profile_image')) {
             $file = $request->file('profile_image');
             $path = Storage::url($file->storeAs('public/front_id', uniqid() . '.' . $file->getClientOriginalExtension()));
             $user->profile_image = env('APP_URL') . $path;
         }
+
         $user->save();
 
         return response()->json($user, 200);
@@ -80,10 +90,8 @@ class UserController extends Controller
         //
     }
 
-    public function verify(string $id)
+    public function verify(User $user)
     {
-        $user = User::findOrFail($id);
-
         if (!$user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
         }
