@@ -35,6 +35,7 @@ class PostController extends Controller implements HasMiddleware
 
     public function show(Post $post)
     {
+        $postTemp = $post;
         return response()->json($post->load(['tags', 'user', 'comments']), 200);
     }
 
