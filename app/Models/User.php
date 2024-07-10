@@ -13,6 +13,8 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Facades\Password;
 
 class User extends Authenticatable
@@ -61,15 +63,26 @@ class User extends Authenticatable
         ];
     }
 
-    public function posts()
+    public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
     }
 
-    public function scopeUser(Builder $query)
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function postComments(): HasManyThrough
+    {
+        return $this->hasManyThrough(Comment::class, Post::class);
+    }
+
+    public function scopeUserRole(Builder $query)
     {
         return $query->where('role', Role::USER);
     }
+
     public function sendPasswordResetNotification($token)
     {
         $this->$this->notify(new ResetPasswordNotification($token, $this->getEmailForPasswordReset()));

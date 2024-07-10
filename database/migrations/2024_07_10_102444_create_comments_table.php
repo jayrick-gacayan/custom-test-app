@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,18 +14,12 @@ return new class extends Migration
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->text('body');
-            $table->uuid('commentable_id');
-            $table->string('commentable_type');
-            $table->uuid('parent_id')->nullable();
+            // $table->uuid('commentable_id');
+            // $table->string('commentable_type');
+            $table->nullableUuidMorphs('commentable');
             $table->timestamps();
-
-            // Add the foreign key constraint in the same statement
-
-        });
-
-        Schema::table('comments', function (Blueprint $table) {
-            $table->foreign('parent_id')->references('id')->on('comments')->onDelete('cascade');
         });
     }
 
@@ -33,9 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('comments', function (Blueprint $table) {
-            $table->dropForeign(['parent_id']);
-        });
 
         Schema::dropIfExists('comments');
     }

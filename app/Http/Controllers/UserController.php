@@ -2,27 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Comment;
-use App\Models\Post;
 use Illuminate\Http\Request;
-use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
+use App\Models\User;
 
-class UserController extends Controller
+class UserController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('auth:api', ['update', 'logout', 'show']),
+            new Middleware('guest:api', [
+                'verify',
+                'login',
+                'forgot_password',
+                'reset_password',
+                'store',
+                'show'
+            ]),
+        ];
+    }
+
     public function index()
     {
-        return response()->json(User::user()->all(), 200);
+        return response()->json(User::userRole()->get(), 200);
+    }
+
+    public function show(User $user)
+    {
+        return response()->json(
+            $user->load('posts.tags', 'posts.comments'),
+            200
+        );
     }
 
     public function store(Request $request)
@@ -51,24 +73,7 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function show(User $user)
-    {
 
-
-        return response()->json(
-
-            $user->with([
-                'posts.tags',
-                'posts.comments', function ($query) {
-                    $query->whereNull('parent_id');
-                },
-
-                'posts.comments.replies'
-            ])->get(),
-
-            200
-        );
-    }
 
     public function update(Request $request, User $user)
     {
@@ -168,9 +173,14 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
 
-        if (Auth::attempt($request->only('email', 'password'))) {
-            $user = User::where($request->email)->first();
+        if (Auth::attempt($credentials)) {
+
+            $user = User::where('email', $request->email)->first();
 
             $token = $user->createToken('Access Token')->accessToken;
 

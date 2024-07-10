@@ -8,5 +8,4 @@ class PostTag extends Pivot
 {
     //
 
-    protected $table = 'post_tag';
 }
