@@ -14,6 +14,6 @@ Route::controller(UserController::class)->group(function () {
 });
 
 Route::post('/logout', [UserController::class, 'logout']);
-Route::resource('users', UserController::class);
-Route::resource('posts', PostController::class);
-Route::resource('posts.comments', PostCommentController::class);
+Route::apiResource('users', UserController::class);
+Route::apiResource('posts', PostController::class);
+Route::apiResource('posts.comments', PostCommentController::class);
