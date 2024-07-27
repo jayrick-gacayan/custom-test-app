@@ -13,6 +13,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Facades\Password;
@@ -73,6 +74,11 @@ class User extends Authenticatable
         return $this->hasMany(Comment::class);
     }
 
+    public function friends(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'friend_user', 'user_id', 'friend_id');
+    }
+
     public function postComments(): HasManyThrough
     {
         return $this->hasManyThrough(Comment::class, Post::class);
@@ -86,5 +92,10 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token)
     {
         $this->$this->notify(new ResetPasswordNotification($token, $this->getEmailForPasswordReset()));
+    }
+
+    public function isFriend(User $user)
+    {
+        return $this->friends()->where('friend_id', $user->id)->first();
     }
 }
