@@ -33,7 +33,7 @@ class PostCommentController extends Controller implements HasMiddleware
      */
     public function store(Request $request, Post $post)
     {
-        $user = Auth::user();
+        $user = auth('api')->user();
 
         $post->comments()->save($user->comments()->make($request->all()));
         return response()->json($post->load(['tags', 'comments', 'user']), 200);

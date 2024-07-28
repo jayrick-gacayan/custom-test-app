@@ -20,8 +20,11 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('profile_image')->nullable();
             $table->timestamp('email_verified_at')->nullable();
-            $table->enum('role', array_column(Role::cases(), 'value'))->default('user');
+            $table->enum('role', array_column(Role::cases(), 'value'))->default(Role::USER);
             $table->string('password');
+            $table->float('sat', 2)->nullable();
+            $table->float('act', 2)->nullable();
+            $table->float('gpa', 2)->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

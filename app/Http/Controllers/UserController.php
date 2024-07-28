@@ -178,7 +178,7 @@ class UserController extends Controller implements HasMiddleware
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (auth('api')->attempt($credentials)) {
 
             $user = User::where('email', $request->email)->first();
 
@@ -199,7 +199,8 @@ class UserController extends Controller implements HasMiddleware
 
     public function logout()
     {
-        $user = Auth::user();
+        $user = auth('api')->user();
+
 
         if ($user) {
             $user->tokens->each(function ($token, $key) {

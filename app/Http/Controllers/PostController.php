@@ -26,7 +26,7 @@ class PostController extends Controller implements HasMiddleware
     public function store(Request $request)
     {
         //
-        $user = Auth::user();
+        $user = auth('api')->user();
 
         $post = $user->posts()->create($request->all());
 
